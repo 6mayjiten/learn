@@ -2,8 +2,8 @@ import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import AsyncStorage from '@react-native-community/async-storage';
 import {setUserToken} from '../../actions';
-import Loader from '../../Helper/loader';
-import {MessageHelper} from '../../Helper/messageHelper';
+import Loader from '../Helper/loader';
+import {MessageHelper} from '../Helper/messageHelper';
 
 class AuthLoadingScreen extends Component {
 	componentDidMount() {

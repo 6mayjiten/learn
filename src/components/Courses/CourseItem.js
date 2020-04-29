@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
 const CourseItem = props => {
 	return (
 		<TouchableWithoutFeedback
-			onPress={() => props.selectedCourse(props.course)}>
+			onPress={() => props.selectedCourse(props.main_course, props.course._id)}>
 			<Col style={styles.courseSection}>
 				<Text style={styles.courseName}>
 					Take {props.course.course_name} Quiz

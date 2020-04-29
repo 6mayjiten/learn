@@ -15,8 +15,8 @@ import {
 import {StyleSheet, TouchableHighlight} from 'react-native';
 import ValidationComponent from 'react-native-form-validator';
 import {userRegistration, setLoading} from '../../actions';
-import Loader from '../../Helper/loader';
-import {MessageHelper} from '../../Helper/messageHelper';
+import Loader from '../Helper/loader';
+import {MessageHelper} from '../Helper/messageHelper';
 
 const styles = StyleSheet.create({
 	form: {

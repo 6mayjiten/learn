@@ -3,17 +3,18 @@ import {StyleSheet} from 'react-native';
 import {Container, Grid, Row, Col, Button, Text} from 'native-base';
 import {connect} from 'react-redux';
 import {removeUserToken} from '../../actions';
-import {MessageHelper} from '../../Helper/messageHelper';
+import {MessageHelper} from '../Helper/messageHelper';
+import AppHeader from '../Header';
 
 const styles = StyleSheet.create({
   grid: {
     display: 'flex',
-    flexDirection: 'column',
     justifyContent: 'space-around',
-    margin: 50,
+    flexDirection: "column"
   },
   btnStyle: {
-    justifyContent: 'center',
+    justifyContent:"center",
+    margin: 40,
   },
   btnTxt: {
     textAlign: 'center',
@@ -26,6 +27,7 @@ class Home extends React.Component {
       MessageHelper.show('success', 'Successfully LoggedIn.');
     }
   }
+  
   componentDidUpdate() {
     if (this.props.token == null) {
       MessageHelper.show('success', 'Logged Out', '');
@@ -35,6 +37,7 @@ class Home extends React.Component {
   render() {
     return (
       <Container>
+        <AppHeader title="Home" isHome={true} navigation={this.props.navigation}/>
         <Grid style={styles.grid}>
           <Button
             style={styles.btnStyle}

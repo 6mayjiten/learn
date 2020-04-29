@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import {StyleSheet} from 'react-native';
 import {
-	getSpellingCourse,
+	getSpelling,
 	saveSpellingResponse,
 	setLoading,
 } from '../../actions';
@@ -19,27 +19,32 @@ import {
 } from 'native-base';
 import Sound from 'react-native-sound';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import {MessageHelper} from '../../Helper/messageHelper';
-import Loader from '../../Helper/loader';
+import {MessageHelper} from '../Helper/messageHelper';
+import Loader from '../Helper/loader';
 
 const styles = StyleSheet.create({
 	grid: {
 		justifyContent: 'center',
 		marginTop: 20,
 	},
-	btnStyle: {
-		justifyContent: 'space-between',
-		marginTop: 30,
-		paddingHorizontal: 50,
-	},
-	btnTxt: {
-		textAlign: 'center',
-	},
 	inputTxt: {
 		textAlign: 'center',
 		marginHorizontal: 20,
 		borderBottomColor: '#54c39a',
 		borderBottomWidth: 2,
+		marginTop: 20,
+	},
+	meaningTxt: {
+		textAlign: 'center',
+		marginHorizontal: 20,
+		marginTop: 20,
+	},
+	btnStyle: {
+		justifyContent: 'space-between',
+		paddingHorizontal: 50,
+	},
+	btnTxt: {
+		textAlign: 'center',
 	},
 	error: {
 		marginTop: 20,
@@ -72,18 +77,22 @@ class SpellingCourse extends Component {
 
 	async componentDidMount() {
 		await this.props.setLoading(true);
-		await this.props.getSpellingCourse(
+		await this.props.getSpelling(
 			this.props.token,
-			this.props.selectedCourse._id,
+			this.props.selectedCourse.sub_course[0].parent_id,
+            this.props.selectedLevel,
+            this.props.selectedYear 
 		);
 	}
 
 	loadNewWord = async () => {
 		await this.props.setLoading(true);
 		await this.setState(this.initialState);
-		await this.props.getSpellingCourse(
+		await this.props.getSpelling(
 			this.props.token,
-			this.props.selectedCourse._id,
+			this.props.selectedCourse.sub_course[0].parent_id,
+            this.props.selectedLevel,
+            this.props.selectedYear 
 		);
 	};
 
@@ -138,9 +147,8 @@ class SpellingCourse extends Component {
 		}
 	};
 
-	saveSpellingResponse = isCorrect => {
-		this.props.setLoading(true);
-		this.props.saveSpellingResponse(
+	saveSpellingResponse = async (isCorrect) => {
+		await this.props.saveSpellingResponse(
 			this.props.ques,
 			isCorrect,
 			this.props.token,
@@ -148,14 +156,13 @@ class SpellingCourse extends Component {
 	};
 
 	isError() {
-		//alert(this.state.isCorrect + " ==> "+this.state.isWrong);
 		if (this.state.isUserInputEmpty) {
 			return (
 				<Row size={1}>
 					<Text style={styles.error}>Please enter the word.</Text>
 				</Row>
 			);
-		} else if (!this.state.isCorrect && this.state.isWrong) {
+		} else if (!this.state.isUserInputEmpty && !this.state.isCorrect && this.state.isWrong) {
 			this.saveSpellingResponse(this.state.isCorrect);
 			return (
 				<Row size={1}>
@@ -164,12 +171,12 @@ class SpellingCourse extends Component {
 					</Text>
 				</Row>
 			);
-		} else if (this.state.isCorrect) {
+		} else if (!this.state.isUserInputEmpty && this.state.isCorrect) {
 			this.saveSpellingResponse(this.state.isCorrect);
 			return (
 				<Row size={1}>
 					<Text style={styles.success}>
-						Awsome !! Click continue for next question.
+						Awesome !! Click continue for next question.
 					</Text>
 				</Row>
 			);
@@ -181,64 +188,67 @@ class SpellingCourse extends Component {
 			return <Loader />;
 		}
 		return (
-			<Container>
-				<Grid>
-					<Row size={1} style={styles.grid}>
-						<Icon
-							name="play-circle"
-							size={70}
-							onPress={() => {
-								this.playTrack();
-							}}
-						/>
-					</Row>
-					<Row size={3}>
-						<Col>
+				<Container>
+					<Content>
+						<Grid>
 							<Row size={1} style={styles.grid}>
+								<Icon
+									name="play-circle"
+									size={70}
+									onPress={() => {
+										this.playTrack();
+									}}
+								/>
+							</Row>
+							<Row size={3}>
 								<Col>
-									<Row size={1}>
-										<Input
-											editable={this.state.isEditable}
-											style={styles.inputTxt}
-											placeholder="Type Word"
-											value={this.state.userSpelling}
-											onChangeText={value => {
-												this.handleSpelling(value);
-											}}
-										/>
+									<Row size={1} style={styles.grid}>
+										<Col>
+											<Row size={1}>
+												<Input
+													editable={this.state.isEditable}
+													style={styles.inputTxt}
+													placeholder="Type Word"
+													value={this.state.userSpelling}
+													onChangeText={value => {
+														this.handleSpelling(value);
+													}}
+												/>
+											</Row>
+											{this.isError()}
+											<Text style={styles.meaningTxt}>{this.props.ques.meaning}</Text>
+										</Col>
 									</Row>
-									{this.isError()}
+									<Row size={1} style={styles.grid}>
+										{this.state.isWrong || this.state.isCorrect ? (
+											<Button
+												bordered
+												rounded
+												primary
+												style={styles.btnStyle}
+												onPress={() => {
+													this.loadNewWord();
+												}}>
+												<Text>Continue</Text>
+											</Button>
+										) : (
+											<Button
+												bordered
+												rounded
+												success
+												style={styles.btnStyle}
+												onPress={() => {
+													this.validateSpelling();
+												}}>
+												<Text>Validate</Text>
+											</Button>
+										)}
+									</Row>
 								</Col>
 							</Row>
-							<Row size={1} style={styles.grid}>
-								{this.state.isWrong || this.state.isCorrect ? (
-									<Button
-										bordered
-										rounded
-										primary
-										style={styles.btnStyle}
-										onPress={() => {
-											this.loadNewWord();
-										}}>
-										<Text>Continue</Text>
-									</Button>
-								) : (
-									<Button
-										bordered
-										rounded
-										success
-										style={styles.btnStyle}
-										onPress={() => {
-											this.validateSpelling();
-										}}>
-										<Text>Validate</Text>
-									</Button>
-								)}
-							</Row>
-						</Col>
-					</Row>
-				</Grid>
-			</Container>
+						</Grid>
+					</Content>
+				</Container>
 		);
 	}
 }
@@ -246,9 +256,12 @@ class SpellingCourse extends Component {
 const mapStateToProps = state => {
 	return {
 		selectedCourse: state.selectedCourse,
+		selectedLevel: state.selectedLevel,
+		selectedYear: state.selectedYear,
 		ques: state.ques,
 		audioUrl: state.dataUrl,
 		token: state.token,
+		isLoading: state.isLoading,
 		isError: state.isError,
 		errorMessage: state.errorMessage,
 	};
@@ -256,5 +269,5 @@ const mapStateToProps = state => {
 
 export default connect(
 	mapStateToProps,
-	{getSpellingCourse, setLoading, saveSpellingResponse},
+	{getSpelling, setLoading, saveSpellingResponse},
 )(SpellingCourse);

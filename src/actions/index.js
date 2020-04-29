@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-community/async-storage';
-import NavigationService from '../components/NavigationService';
-import {apiUrl} from 'react-native-dotenv';
+import NavigationService from '../components/Navigation/NavigationService';
+import Config from "react-native-config";
+let apiUrl = Config.apiUrl;
 
 let createHeaders = userToken => {
 	var header = new Headers();
@@ -180,30 +181,45 @@ export const loadCourse = token => {
 	};
 };
 
-export const selectedCourse = courseId => {
+export const selectedCourse = (course,levelId) => {
 	return {
 		type: 'SELECTED_COURSE',
-		payload: courseId,
+		payload: course,
+		level: levelId,
 	};
 };
 
-export const getSpellingCourse = (token, courseId) => {
+export const handleSelectedYear = (year) => {
+	return {
+		type: 'SELECTED_YEAR',
+		payload: year,
+	};
+}
+
+export const getSpelling = (token, courseId, levelId, year) => {
 	return dispatch => {
 		fetch(apiUrl + 'word', {
 			method: 'POST',
 			headers: createHeaders(token),
 			body: JSON.stringify({
 				course_id: courseId,
+				level_id: levelId,
+				year: year
 			}),
 		})
 			.then(response => {
 				return response.json();
 			})
 			.then(data => {
-				if (!data.error) {
+				if (!data.error && !data.completed) {
+					dispatch({type: 'GET_SPELLING', payload: data});
 					dispatch({type: 'SET_LOADING', payload: false});
-					dispatch({type: 'GET_SPELLING_COURSE', payload: data});
-				} else {
+				} else if(data.completed){
+					dispatch({type: 'SET_LOADING', payload: false});
+					dispatch({type: 'SET_ERROR', payload: data});
+					dispatch({type: 'REMOVE_ERROR'});
+					dispatch(NavigationService.navigate('Courses', {}));
+				}else {
 					dispatch({type: 'SET_LOADING', payload: false});
 					dispatch({type: 'SET_ERROR', payload: data});
 					dispatch({type: 'REMOVE_ERROR'});
@@ -232,12 +248,13 @@ export const saveSpellingResponse = (ques, isCorrect, token) => {
 			})
 			.then(data => {
 				if (!data.error) {
-					dispatch({type: 'SET_LOADING', payload: false});
 					dispatch({type: 'SAVE_SPELLING_RESPONSE'});
+					dispatch({type: 'SET_LOADING', payload: false});
 				} else {
 					dispatch({type: 'SET_LOADING', payload: false});
 					dispatch({type: 'SET_ERROR', payload: data});
 					dispatch({type: 'REMOVE_ERROR'});
+					dispatch(NavigationService.navigate('Courses', {}));
 				}
 			})
 			.catch(error => {
@@ -247,3 +264,73 @@ export const saveSpellingResponse = (ques, isCorrect, token) => {
 			});
 	};
 };
+
+export const getMathQues = (token, courseId, levelId, year) => {
+	return dispatch => {
+		fetch(apiUrl + 'math', {
+			method: 'POST',
+			headers: createHeaders(token),
+			body: JSON.stringify({
+				course_id: courseId,
+				level_id: levelId,
+				year: year
+			}),
+		})
+		.then(response => {
+			return response.json();
+		})
+		.then(data => {
+			if (!data.error && !data.completed) {
+				dispatch({type: 'SET_LOADING', payload: false});
+				dispatch({type: 'GET_MATH_QUES', payload: data});
+			}else if(data.completed){
+				dispatch({type: 'SET_LOADING', payload: false});
+				dispatch({type: 'SET_ERROR', payload: data});
+				dispatch({type: 'REMOVE_ERROR'});
+				dispatch(NavigationService.navigate('Courses', {}));
+			} else {
+				dispatch({type: 'SET_LOADING', payload: false});
+				dispatch({type: 'SET_ERROR', payload: data});
+				dispatch({type: 'REMOVE_ERROR'});
+			}
+		})
+		.catch(error => {
+			dispatch({type: 'SET_LOADING', payload: false});
+			dispatch({type: 'SET_ERROR', payload: {error: true, message: error}});
+			dispatch({type: 'REMOVE_ERROR'});
+		});
+	};
+};
+
+export const saveMathResponse = (quesData, isCorrect, token) => {
+	return dispatch => {
+		fetch(apiUrl + 'save-math-response', {
+			method: 'POST',
+			headers: createHeaders(token),
+			body: JSON.stringify({
+				result_id: quesData.result_id,
+				is_right: isCorrect,
+			}),
+		})
+			.then(response => {
+				return response.json();
+			})
+			.then(data => {
+				if (!data.error) {
+					dispatch({type: 'SAVE_MATH_RESPONSE'});
+					dispatch({type: 'SET_LOADING', payload: false});
+				} else {
+					dispatch({type: 'SET_LOADING', payload: false});
+					dispatch({type: 'SET_ERROR', payload: data});
+					dispatch({type: 'REMOVE_ERROR'});
+					dispatch(NavigationService.navigate('Courses', {}));
+				}
+			})
+			.catch(error => {
+				dispatch({type: 'SET_LOADING', payload: false});
+				dispatch({type: 'SET_ERROR', payload: {error: true, message: error}});
+				dispatch({type: 'REMOVE_ERROR'});
+			});
+	};
+};
+

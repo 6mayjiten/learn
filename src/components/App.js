@@ -1,12 +1,13 @@
+import 'react-native-gesture-handler';
 import React from 'react';
-import AppContainer from './AppNavigator';
+import AppContainer from './Navigation/AppNavigator';
 import {Provider} from 'react-redux';
 import {createStore, applyMiddleware} from 'redux';
 import reducer from '../reducers';
 import thunk from 'redux-thunk';
-import NavigationService from './NavigationService';
+import NavigationService from './Navigation/NavigationService';
 import DropdownAlert from 'react-native-dropdownalert';
-import {MessageHelper} from '../Helper/messageHelper';
+import {MessageHelper} from './Helper/messageHelper';
 import {StatusBar} from 'react-native';
 
 const store = createStore(reducer, applyMiddleware(thunk));
